@@ -27,7 +27,7 @@ function time_deactivate() {}
 
 function time_mycode($message)
 {
-	$message = preg_replace_callback("#\[time=([a-zA-Z0-9\s+-]*)\](.*?)\[/time\]#si", "time_create", $message);
+	$message = preg_replace_callback("#\[time=([a-zA-Z0-9\s+-.:]*)\](.*?)\[/time\]#si", "time_create", $message);
 	$message = preg_replace_callback("#\[time\](.*?)\[/time\]#si", "time_create_user", $message);
 
 	return $message;
@@ -45,6 +45,11 @@ function time_create(array $match)
 	else
 		$offset = $zone;
 	
+	if(substr($offset, -3) == ":30")
+	    $offset = substr($offset, 0, -3).".5";
+	elseif(substr($offset, -3) == ":00")
+	    $offset = substr($offset, 0, -3);
+
 	//Probably GMT?
 	if(!is_numeric($offset))
 	    $offset = 0;
