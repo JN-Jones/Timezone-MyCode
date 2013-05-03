@@ -97,6 +97,21 @@ function generate_time($offset, $time)
 	if(!is_numeric($offset))
 	    $offset = 0;
 
+	//Have we a date?
+	$usedate = false;
+	$temp = explode(" ", $time);
+	if(sizeOf($temp) == 2) {
+		$usedate = true;
+		foreach($temp as $k => $temp2) {
+			// We need at least 2 dots for our date
+			if(substr_count($temp2, ".") >= 2) {
+				if(substr($temp2, -1) == ".")
+					$temp[$k] .= my_date("Y", TIME_NOW);
+			}
+		}
+	}
+	$time = implode(" ", $temp);
+
 	$tz = date_default_timezone_get();
 	date_default_timezone_set("GMT");
 	$stamp = strtotime($time);
@@ -109,10 +124,21 @@ function generate_time($offset, $time)
 	//Generate GMT Time
 	$gmtstamp = $stamp - ($offset*3600);
 
-	$format = $mybb->settings['timeformat'];
+	$timeformat = $mybb->settings['timeformat'];
 	if(!empty($mybb->user['timeformat']))
-	    $format = $mybb->user['timeformat'];
+	    $timeformat = $mybb->user['timeformat'];
 
-	return my_date($format, $gmtstamp);
+	$return = "";
+	if($usedate) {
+		$dateformat = $mybb->settings['dateformat'];
+		if(!empty($mybb->user['dateformat']))
+		    $dateformat = $mybb->user['dateformat'];
+		    
+		$return = my_date($dateformat, $gmtstamp)." ";
+	}
+	
+	$return .= my_date($timeformat, $gmtstamp); 
+
+	return $return;
 }
 ?>
