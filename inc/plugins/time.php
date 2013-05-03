@@ -5,7 +5,6 @@ if(!defined("IN_MYBB"))
 }
 
 $plugins->add_hook("parse_message", "time_mycode");
-$plugins->add_hook("parse_message_quote", "time_mycode");
 
 function time_info()
 {
@@ -61,12 +60,10 @@ function time_create_user(array $match)
 
 	$time = $match[1];
 
-	$user = $post['user'];
-
-	if(isset($user['uid']) && $user['uid'] != 0 && array_key_exists("timezone", $user))
+	if(isset($post['uid']) && $post['uid'] != 0 && array_key_exists("timezone", $post))
 	{
-		$offset = $user['timezone'];
-		$dstcorrection = $user['dst'];
+		$offset = $post['timezone'];
+		$dstcorrection = $post['dst'];
 	}
 	else
 	{
@@ -109,8 +106,8 @@ function generate_time($offset, $time)
 					$temp[$k] .= my_date("Y", TIME_NOW);
 			}
 		}
+		$time = implode(" ", $temp);
 	}
-	$time = implode(" ", $temp);
 
 	$tz = date_default_timezone_get();
 	date_default_timezone_set("GMT");
@@ -124,20 +121,12 @@ function generate_time($offset, $time)
 	//Generate GMT Time
 	$gmtstamp = $stamp - ($offset*3600);
 
-	$timeformat = $mybb->settings['timeformat'];
-	if(!empty($mybb->user['timeformat']))
-	    $timeformat = $mybb->user['timeformat'];
-
 	$return = "";
 	if($usedate) {
-		$dateformat = $mybb->settings['dateformat'];
-		if(!empty($mybb->user['dateformat']))
-		    $dateformat = $mybb->user['dateformat'];
-		    
-		$return = my_date($dateformat, $gmtstamp)." ";
+		$return = my_date($mybb->settings['dateformat'], $gmtstamp)." ";
 	}
-	
-	$return .= my_date($timeformat, $gmtstamp); 
+
+	$return .= my_date($mybb->settings['timeformat'], $gmtstamp);
 
 	return $return;
 }
