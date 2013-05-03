@@ -50,51 +50,7 @@ function time_create(array $match)
 	elseif(substr($offset, -3) == ":00")
 	    $offset = substr($offset, 0, -3);
 
-	//Probably GMT?
-	if(!is_numeric($offset))
-	    $offset = 0;
-		
-	if(isset($mybb->user['uid']) && $mybb->user['uid'] != 0 && array_key_exists("timezone", $mybb->user))
-	{
-		$moffset = $mybb->user['timezone'];
-		$dstcorrection = $mybb->user['dst'];
-	}
-	else
-	{
-		$moffset = $mybb->settings['timezoneoffset'];
-		$dstcorrection = $mybb->settings['dstcorrection'];
-	}
-
-	// If DST correction is enabled, add an additional hour to the timezone.
-
-	if($dstcorrection == 1)
-	{
-		++$moffset;
-		if(my_substr($moffset, 0, 1) != "-")
-		{
-			$moffset = "+".$moffset;
-		}
-	}
-	
-	$tz = date_default_timezone_get();
-	date_default_timezone_set("GMT");
-	$stamp = strtotime($time);
-	date_default_timezone_set($tz);
-
-	if($stamp === false)
-	    //Error, just return the normal time
-		return $time;
-
-	//$stamp = $stamp;// - ($moffset*3600);
-
-	//Generate GMT Time
-	$gmtstamp = $stamp - ($offset*3600);
-
-	$format = $mybb->settings['timeformat'];
-	if(!empty($mybb->user['timeformat']))
-	    $format = $mybb->user['timeformat'];
-	
-	$ntime = my_date($format, $gmtstamp);
+	$ntime = generate_time($offset, $time);
 
 	return $ntime;
 }
@@ -129,27 +85,17 @@ function time_create_user(array $match)
 		}
 	}
 
-	if(isset($mybb->user['uid']) && $mybb->user['uid'] != 0 && array_key_exists("timezone", $mybb->user))
-	{
-		$moffset = $mybb->user['timezone'];
-		$dstcorrection = $mybb->user['dst'];
-	}
-	else
-	{
-		$moffset = $mybb->settings['timezoneoffset'];
-		$dstcorrection = $mybb->settings['dstcorrection'];
-	}
+	$ntime = generate_time($offset, $time);
 
-	// If DST correction is enabled, add an additional hour to the timezone.
+	return $ntime;
+}
 
-	if($dstcorrection == 1)
-	{
-		++$moffset;
-		if(my_substr($moffset, 0, 1) != "-")
-		{
-			$moffset = "+".$moffset;
-		}
-	}
+function generate_time($offset, $time)
+{
+	global $mybb;
+	//Probably GMT?
+	if(!is_numeric($offset))
+	    $offset = 0;
 
 	$tz = date_default_timezone_get();
 	date_default_timezone_set("GMT");
@@ -161,15 +107,12 @@ function time_create_user(array $match)
 		return $time;
 
 	//Generate GMT Time
-	$gmtstamp = $stamp - ($offset * 3600);
+	$gmtstamp = $stamp - ($offset*3600);
 
 	$format = $mybb->settings['timeformat'];
 	if(!empty($mybb->user['timeformat']))
 	    $format = $mybb->user['timeformat'];
 
-	$ntime = my_date($format, $gmtstamp);
-
-
-	return $ntime;
+	return my_date($format, $gmtstamp);
 }
 ?>
